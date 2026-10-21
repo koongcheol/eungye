@@ -8,7 +8,7 @@ window.FESTIVAL_CONFIG = {
 
   /* ① 구글폼 "미리 채워진 링크"를 그대로 붙여넣기 (README 2단계 참고)
         각 질문에 GRADE / RESULT / CONSULT / SCORES / NAME 을 입력해서 만든 링크 */
-  FORM_PREFILL_LINK: "https://docs.google.com/forms/d/e/1FAIpQLSemKp1yutiHGf-alzJu5YxXP3ON6EZiZriIhqSucSwaS2zq5A/viewform?usp=pp_url&entry.585387758=11&entry.755214762=11&entry.24397337=11&entry.824416755=11",
+  FORM_PREFILL_LINK: "https://docs.google.com/forms/d/e/1FAIpQLSemKp1yutiHGf-alzJu5YxXP3ON6EZiZriIhqSucSwaS2zq5A/viewform?usp=pp_url&entry.585387758=GRADE&entry.755214762=RESULT&entry.24397337=CONSULT&entry.824416755=SCORES",
 
   /* ② Apps Script 웹 앱 URL (README 3단계). 비워두면 이 기기 기록으로만 통계 표시 */
   STATS_URL: "",
