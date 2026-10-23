@@ -11,7 +11,7 @@ window.FESTIVAL_CONFIG = {
   FORM_PREFILL_LINK: "https://docs.google.com/forms/d/e/1FAIpQLSemKp1yutiHGf-alzJu5YxXP3ON6EZiZriIhqSucSwaS2zq5A/viewform?usp=pp_url&entry.585387758=GRADE&entry.755214762=RESULT&entry.24397337=CONSULT&entry.824416755=SCORES",
 
   /* ② Apps Script 웹 앱 URL (README 3단계). 비워두면 이 기기 기록으로만 통계 표시 */
-  STATS_URL: "",
+  STATS_URL: "https://script.google.com/macros/s/AKfycbzZuERF44IkAyYjHwl6o-nkvKCL2PsOcfP1QhnG4xcykxjZvAVXuxb0elGDqYbt3OGcew/exec",
 
   /* 이름 수집 여부 (미성년자 개인정보이므로 꼭 필요할 때만 true) */
   COLLECT_NAME: false,
