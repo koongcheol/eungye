@@ -67,6 +67,14 @@ h1,h2,.display{font-family:var(--display);font-weight:400;letter-spacing:-.01em;
 .q{font-size:clamp(28px,7vw,36px);margin-bottom:28px}
 .opts{display:grid;gap:10px}
 
+/* dept quiz */
+.strip.quiz i.on{background:var(--web)}
+.btn.ok{border-color:#1FA463;background:color-mix(in srgb,#1FA463 16%,var(--surface))}
+.btn.no{border-color:var(--video);opacity:.55;text-decoration:line-through;animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.fb{min-height:1.7em;font-weight:700;margin:16px 0 0;text-align:center}
+.fb.ok{color:#1FA463}.fb.no{color:var(--video)}
+
 /* consult */
 .lead{color:var(--muted);margin:12px 0 28px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -79,7 +87,7 @@ h1,h2,.display{font-family:var(--display);font-weight:400;letter-spacing:-.01em;
 /* result */
 .card{background:var(--t);color:#fff;border-radius:28px;padding:32px 26px 28px;position:relative;overflow:hidden;animation:pop .5s cubic-bezier(.2,1.4,.4,1)}
 @keyframes pop{from{transform:scale(.85);opacity:0}}
-@media (prefers-reduced-motion:reduce){.card{animation:none}.rec{animation:none}}
+@media (prefers-reduced-motion:reduce){.card,.rec,.btn.no{animation:none}}
 .card .emoji{font-size:64px;line-height:1}
 .card .kind{margin:18px 0 4px;font-weight:700;opacity:.9}
 .card h2{font-size:clamp(34px,9vw,46px)}
@@ -216,8 +224,9 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 20px 28px}
 
   /* ---------- 상태 ---------- */
   let S;
-  const reset = () => { S = { grade:null, step:0, answers:[], order:[], consult:null, name:"" }; };
+  const reset = () => { S = { grade:null, step:0, answers:[], order:[], quiz:[], qorder:[], consult:null, name:"" }; };
   reset();
+  const QZ = Array.isArray(C.QUIZ) ? C.QUIZ : [];
 
   function shuffle(n){ const a = [...Array(n).keys()]; for(let i=n-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 
@@ -245,7 +254,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 20px 28px}
       <section class="narrow">
         <div class="hero">
           <h1><span>나는</span><span class="t-video">영상,</span><span class="t-ai">AI,</span><span class="t-web">웹</span><span>중 어디에 맞을까?</span></h1>
-          <p>질문 ${C.QUESTIONS.length}개에 답하면 나한테 맞는 분야를 알려줘요. 1분이면 끝나요.</p>
+          <p>질문 ${C.QUESTIONS.length}개에 답하면 나한테 맞는 분야를 알려줘요.${QZ.length ? ` 마지막엔 학과 퀴즈 ${QZ.length}개가 기다리고 있어요.` : ""}</p>
         </div>
         <div class="gift"><div class="ico" aria-hidden="true">🎁</div>
           <div><b>끝까지 하면 NFC 말랑이 키링을 드려요!</b><span>NFC를 넣은 말랑말랑 키링이에요.</span></div></div>
@@ -270,7 +279,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 20px 28px}
       </section>`;
     app.querySelectorAll("[data-k]").forEach(b => b.onclick = () => {
       S.answers[i] = Q.a[+b.dataset.k].t;
-      if(i+1 < N){ S.step++; quiz(); } else consult();
+      if(i+1 < N){ S.step++; quiz(); } else if(QZ.length) deptQuiz(0); else consult();
     });
     document.getElementById("back").onclick = () => { if(i===0) home(); else { S.step--; quiz(); } };
   }
@@ -297,7 +306,38 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 20px 28px}
       const nm = document.getElementById("nm"); S.name = nm ? nm.value.trim() : "";
       finish();
     });
-    document.getElementById("back").onclick = () => quiz();
+    document.getElementById("back").onclick = () => QZ.length ? deptQuiz(QZ.length-1) : quiz();
+  }
+
+  function deptQuiz(j){
+    const Q = QZ[j];
+    if(!S.qorder[j]) S.qorder[j] = shuffle(Q.a.length);
+    app.innerHTML = `
+      <section class="narrow">
+        <div class="strip quiz" aria-hidden="true">${QZ.map((_,k) => `<i class="${k<=j?"on":""}"></i>`).join("")}</div>
+        <div class="qmeta"><span>학과 퀴즈 ${j+1} / ${QZ.length}</span>
+          <button class="link" id="back">이전</button></div>
+        <h2 class="q">${esc(Q.q)}</h2>
+        <div class="opts">${S.qorder[j].map(k => `<button class="btn" data-k="${k}">${esc(Q.a[k])}</button>`).join("")}</div>
+        <p class="fb" id="fb" aria-live="polite"></p>
+      </section>`;
+    const fb = document.getElementById("fb");
+    let tried = false, done = false;
+    app.querySelectorAll("[data-k]").forEach(b => b.onclick = () => {
+      if(done) return;
+      if(+b.dataset.k === Q.answer){
+        done = true; b.classList.add("ok");
+        if(S.quiz[j] === undefined) S.quiz[j] = !tried;
+        fb.className = "fb ok"; fb.textContent = "정답! " + (Q.explain || "");
+        setTimeout(() => { if(j+1 < QZ.length) deptQuiz(j+1); else consult(); }, 1400);
+      } else {
+        tried = true; b.classList.add("no"); b.disabled = true;
+        fb.className = "fb no"; fb.textContent = "땡! 다시 골라봐요.";
+      }
+    });
+    document.getElementById("back").onclick = () => {
+      if(j === 0){ S.step = C.QUESTIONS.length - 1; quiz(); } else deptQuiz(j-1);
+    };
   }
 
   function finish(){
@@ -305,7 +345,8 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 20px 28px}
     const data = {
       GRADE: S.grade, RESULT: T[win].label, CONSULT: S.consult,
       SCORES: IDS.map(i => `${T[i].label} ${s[i]}`).join(" / "),
-      NAME: S.name
+      NAME: S.name,
+      QUIZ: QZ.length ? `${S.quiz.filter(Boolean).length}/${QZ.length}` : ""
     };
     submit(data);
     const local = store.get("fest_local", []); local.push({ g:S.grade, r:win, c:S.consult }); store.set("fest_local", local);
